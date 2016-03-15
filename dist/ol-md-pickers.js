@@ -2,10 +2,13 @@
 "use strict";
 /* global moment, angular */
 
+angular.module("mdPickerTemplates", []);
+
 var module = angular.module("mdPickers", [
 	"ngMaterial",
 	"ngAnimate",
-	"ngAria"
+	"ngAria",
+    "mdPickerTemplates"
 ]);
 
 module.config(["$mdIconProvider", "mdpIconsRegistry", function($mdIconProvider, mdpIconsRegistry) {
@@ -19,6 +22,8 @@ module.run(["$templateCache", "mdpIconsRegistry", function($templateCache, mdpIc
 		$templateCache.put(icon.url, icon.svg);
 	});
 }]);
+angular.module("mdPickerTemplates").run(["$templateCache", function($templateCache) {$templateCache.put("components/mdpDatePicker/pickerTemplate.html","<div layout layout-align=\"start start\" flex>\n    <md-button class=\"md-icon-button\" aria-label=\"{{placeholder}}\" ng-click=\"showPicker($event)\" ng-show=\"showIcon\">\n        <md-icon md-svg-icon=\"mdp-event\"></md-icon>\n    </md-button>\n    <md-input-container class=\"md-block\" flex>\n        <input \n            ng-if=\"float\"\n            ng-click=\"showPicker($event)\" \n            type=\"{{ type }}\" \n            placeholder=\"{{ placeholder }}\" \n            value=\"{{ getValue() }}\" \n            aria-label=\"{{ placeholder }}\"\n            flex />\n        <input \n            ng-if=\"!float\"\n            md-no-float \n            ng-click=\"showPicker($event)\" \n            type=\"{{ type }}\" \n            placeholder=\"{{ placeholder }}\" \n            value=\"{{ getValue() }}\" \n            aria-label=\"{{ placeholder }}\"\n            flex />\n    </md-input-container>\n</div>");
+$templateCache.put("components/mdpTimePicker/pickerTemplate.html","<div layout layout-align=\"start start\" flex>\n    <md-button class=\"md-icon-button\" ng-show=\"showIcon\" aria-label=\"{{ placeholder }}\" ng-click=\"showPicker($event)\">\n        <md-icon md-svg-icon=\"mdp-access-time\"></md-icon>\n    </md-button>\n    <md-input-container class=\"md-block\" flex>\n        <input type=\"{{ type }}\" ng-click=\"showPicker($event)\" placeholder=\"{{ placeholder }}\" value=\"{{ getValue() }}\" aria-label=\"{{ placeholder }}\" flex/>\n    </md-input-container>\n</div>");}]);
 module.constant("mdpIconsRegistry", [
     {
         id: 'mdp-chevron-left',
@@ -349,20 +354,14 @@ module.directive("mdpDatePicker", ["$mdpDatePicker", "$timeout", function($mdpDa
         restrict: 'E',
         require: 'ngModel',
         transclude: true,
-        template: '<div layout layout-align="start start">' +
-                    '<md-button class="md-icon-button" ng-click="showPicker($event)">' +
-                        '<md-icon md-svg-icon="mdp-event"></md-icon>' +
-                    '</md-button>' +
-                    '<md-input-container md-no-float class="md-block">' +
-                        '<input type="{{ type }}" placeholder="{{ placeholder }}" value="{{ getValue() }}" aria-label="{{ placeholder }}" />' +
-                    '</md-input-container>' +
-                '</div>',
+        templateUrl: 'components/mdpDatePicker/pickerTemplate.html',
         scope: {
             "minDate": "@min",
             "maxDate": "@max",
             "dateFilter": "=mdpDateFilter",
             "dateFormat": "@mdpFormat",
-            "placeholder": "@mdpPlaceholder"
+            "placeholder": "@mdpPlaceholder",
+            "showIcon": "@"
         },
         link: function(scope, element, attrs, ngModel, $transclude) {
             var inputElement = angular.element(element[0].querySelector('input')),
@@ -378,6 +377,7 @@ module.directive("mdpDatePicker", ["$mdpDatePicker", "$timeout", function($mdpDa
             scope.type = scope.dateFormat ? "text" : "date"
             scope.dateFormat = scope.dateFormat || "YYYY-MM-DD";
             scope.placeholder = scope.placeholder || scope.dateFormat;
+            scope.showIcon = scope.showIcon === 'true';
             scope.autoSwitch = scope.autoSwitch || false;
             
             scope.getValue = function() {
@@ -695,18 +695,12 @@ module.directive("mdpTimePicker", ["$mdpTimePicker", "$timeout", function($mdpTi
         restrict: 'E',
         require: 'ngModel',
         transclude: true,
-        template: '<div layout layout-align="start start">' +
-                    '<md-button class="md-icon-button" ng-click="showPicker($event)">' +
-                        '<md-icon md-svg-icon="mdp-access-time"></md-icon>' +
-                    '</md-button>' +
-                    '<md-input-container md-no-float class="md-block">' +
-                        '<input type="{{ type }}" placeholder="{{ placeholder }}" value="{{ getValue() }}" aria-label="{{ placeholder }}" />' +
-                    '</md-input-container>' +
-                '</div>',
+        templateUrl: 'components/mdpTimePicker/pickerTemplate.html',
         scope: {
             "timeFormat": "@mdpFormat",
             "placeholder": "@mdpPlaceholder",
             "autoSwitch": "=?mdpAutoSwitch",
+            "showIcon": "@"
         },
         link: function(scope, element, attrs, ngModel, $transclude) {
             var inputElement = angular.element(element[0].querySelector('input')),
@@ -722,6 +716,7 @@ module.directive("mdpTimePicker", ["$mdpTimePicker", "$timeout", function($mdpTi
             scope.type = scope.timeFormat ? "text" : "time"
             scope.timeFormat = scope.timeFormat || "HH:mm";
             scope.placeholder = scope.placeholder || scope.timeFormat;
+            scope.showIcon = scope.showIcon === 'true';
             scope.autoSwitch = scope.autoSwitch || false;
             
             scope.$watch(function() { return ngModel.$error }, function(newValue, oldValue) {

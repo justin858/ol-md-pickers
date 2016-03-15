@@ -1,9 +1,12 @@
 /* global moment, angular */
 
+angular.module("mdPickerTemplates", []);
+
 var module = angular.module("mdPickers", [
 	"ngMaterial",
 	"ngAnimate",
-	"ngAria"
+	"ngAria",
+    "mdPickerTemplates"
 ]);
 
 module.config(["$mdIconProvider", "mdpIconsRegistry", function($mdIconProvider, mdpIconsRegistry) {

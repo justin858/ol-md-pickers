@@ -288,20 +288,14 @@ module.directive("mdpDatePicker", ["$mdpDatePicker", "$timeout", function($mdpDa
         restrict: 'E',
         require: 'ngModel',
         transclude: true,
-        template: '<div layout layout-align="start start">' +
-                    '<md-button class="md-icon-button" ng-click="showPicker($event)">' +
-                        '<md-icon md-svg-icon="mdp-event"></md-icon>' +
-                    '</md-button>' +
-                    '<md-input-container md-no-float class="md-block">' +
-                        '<input type="{{ type }}" placeholder="{{ placeholder }}" value="{{ getValue() }}" aria-label="{{ placeholder }}" />' +
-                    '</md-input-container>' +
-                '</div>',
+        templateUrl: 'components/mdpDatePicker/pickerTemplate.html',
         scope: {
             "minDate": "@min",
             "maxDate": "@max",
             "dateFilter": "=mdpDateFilter",
             "dateFormat": "@mdpFormat",
-            "placeholder": "@mdpPlaceholder"
+            "placeholder": "@mdpPlaceholder",
+            "showIcon": "@"
         },
         link: function(scope, element, attrs, ngModel, $transclude) {
             var inputElement = angular.element(element[0].querySelector('input')),
@@ -317,6 +311,7 @@ module.directive("mdpDatePicker", ["$mdpDatePicker", "$timeout", function($mdpDa
             scope.type = scope.dateFormat ? "text" : "date"
             scope.dateFormat = scope.dateFormat || "YYYY-MM-DD";
             scope.placeholder = scope.placeholder || scope.dateFormat;
+            scope.showIcon = scope.showIcon === 'true';
             scope.autoSwitch = scope.autoSwitch || false;
             
             scope.getValue = function() {

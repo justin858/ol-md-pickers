@@ -1,14 +1,14 @@
 {
-  "name": "mdPickers",
+  "name": "ol-md-pickers",
   "version": "0.7.1",
-  "homepage": "https://github.com/alenaksu/mdPickers",
+  "homepage": "https://github.com/DominicGaribaldi/ol-md-pickers",
   "authors": [
-    "alenaksu"
+    "DominicGaribaldi"
   ],
   "description": "Material Design date/time pickers built with Angular Material and Moment.js",
   "main": [
-    "dist/mdPickers.min.js",
-    "dist/mdPickers.min.css"
+    "dist/ol-md-pickers.min.js",
+    "dist/ol-md-pickers.min.css"
   ],
   "keywords": [
     "angular",

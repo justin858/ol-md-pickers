@@ -1,0 +1,14 @@
+<div layout layout-align="start start" flex>
+    <md-button class="md-icon-button" aria-label="{{placeholder}}" ng-click="showPicker($event)" ng-show="showIcon">
+        <md-icon md-svg-icon="mdp-event"></md-icon>
+    </md-button>
+    <md-input-container class="md-block" flex>
+        <input 
+            ng-click="showPicker($event)" 
+            type="{{ type }}" 
+            placeholder="{{ placeholder }}" 
+            value="{{ getValue() }}" 
+            aria-label="{{ placeholder }}"
+            flex />
+    </md-input-container>
+</div>

@@ -1,11 +1,9 @@
 # mdPickers
-Material Design date/time pickers built with Angular Material and Moment.js
+Material Design date/time pickers built with Angular Material and Moment.js.
+This fork allows for more configuration, such as floating labels, placeholders 
+and other styling options.
 
-
-## Online demos
-
-* [CodePen](http://codepen.io/alenaksu/full/eNzbrZ)
-
+Original mdPickers can be found at: https://github.com/alenaksu/mdPickers
 
 ## Requirements
 
@@ -18,7 +16,7 @@ Material Design date/time pickers built with Angular Material and Moment.js
 Install via Bower:
 
 ```bash
-bower install mdPickers
+bower install ol-md-pickers
 ```
 
 Use in Angular:

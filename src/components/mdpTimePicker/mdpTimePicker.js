@@ -246,18 +246,12 @@ module.directive("mdpTimePicker", ["$mdpTimePicker", "$timeout", function($mdpTi
         restrict: 'E',
         require: 'ngModel',
         transclude: true,
-        template: '<div layout layout-align="start start">' +
-                    '<md-button class="md-icon-button" ng-click="showPicker($event)">' +
-                        '<md-icon md-svg-icon="mdp-access-time"></md-icon>' +
-                    '</md-button>' +
-                    '<md-input-container md-no-float class="md-block">' +
-                        '<input type="{{ type }}" placeholder="{{ placeholder }}" value="{{ getValue() }}" aria-label="{{ placeholder }}" />' +
-                    '</md-input-container>' +
-                '</div>',
+        templateUrl: 'components/mdpTimePicker/pickerTemplate.html',
         scope: {
             "timeFormat": "@mdpFormat",
             "placeholder": "@mdpPlaceholder",
             "autoSwitch": "=?mdpAutoSwitch",
+            "showIcon": "@"
         },
         link: function(scope, element, attrs, ngModel, $transclude) {
             var inputElement = angular.element(element[0].querySelector('input')),
@@ -273,6 +267,7 @@ module.directive("mdpTimePicker", ["$mdpTimePicker", "$timeout", function($mdpTi
             scope.type = scope.timeFormat ? "text" : "time"
             scope.timeFormat = scope.timeFormat || "HH:mm";
             scope.placeholder = scope.placeholder || scope.timeFormat;
+            scope.showIcon = scope.showIcon === 'true';
             scope.autoSwitch = scope.autoSwitch || false;
             
             scope.$watch(function() { return ngModel.$error }, function(newValue, oldValue) {
