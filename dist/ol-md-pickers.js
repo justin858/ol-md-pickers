@@ -22,8 +22,8 @@ module.run(["$templateCache", "mdpIconsRegistry", function($templateCache, mdpIc
 		$templateCache.put(icon.url, icon.svg);
 	});
 }]);
-angular.module("mdPickerTemplates").run(["$templateCache", function($templateCache) {$templateCache.put("components/mdpDatePicker/pickerTemplate.html","<div layout layout-align=\"start start\" flex>\n    <md-button class=\"md-icon-button\" aria-label=\"{{placeholder}}\" ng-click=\"showPicker($event)\" ng-show=\"showIcon\">\n        <md-icon md-svg-icon=\"mdp-event\"></md-icon>\n    </md-button>\n    <md-input-container class=\"md-block\" flex>\n        <input \n            ng-if=\"float\"\n            ng-click=\"showPicker($event)\" \n            type=\"{{ type }}\" \n            placeholder=\"{{ placeholder }}\" \n            value=\"{{ getValue() }}\" \n            aria-label=\"{{ placeholder }}\"\n            flex />\n        <input \n            ng-if=\"!float\"\n            md-no-float \n            ng-click=\"showPicker($event)\" \n            type=\"{{ type }}\" \n            placeholder=\"{{ placeholder }}\" \n            value=\"{{ getValue() }}\" \n            aria-label=\"{{ placeholder }}\"\n            flex />\n    </md-input-container>\n</div>");
-$templateCache.put("components/mdpTimePicker/pickerTemplate.html","<div layout layout-align=\"start start\" flex>\n    <md-button class=\"md-icon-button\" ng-show=\"showIcon\" aria-label=\"{{ placeholder }}\" ng-click=\"showPicker($event)\">\n        <md-icon md-svg-icon=\"mdp-access-time\"></md-icon>\n    </md-button>\n    <md-input-container class=\"md-block\" flex>\n        <input type=\"{{ type }}\" ng-click=\"showPicker($event)\" placeholder=\"{{ placeholder }}\" value=\"{{ getValue() }}\" aria-label=\"{{ placeholder }}\" flex/>\n    </md-input-container>\n</div>");}]);
+angular.module("mdPickerTemplates").run(["$templateCache", function($templateCache) {$templateCache.put("components/mdpDatePicker/pickerTemplate.html","<div class=\"mdp-date-picker-input-container\" layout layout-align=\"start start\" flex>\n    <md-button class=\"md-icon-button\" \n        aria-label=\"{{placeholder}}\" \n        ng-click=\"showPicker($event)\" \n        ng-show=\"showIcon\">\n            <md-icon md-svg-icon=\"mdp-event\"></md-icon>\n    </md-button>\n    <md-input-container class=\"md-block\" flex>\n        <label>{{ placeholder }}</label>\n        <input\n            class=\"mdp-date-picker-input\" \n            ng-click=\"showPicker($event)\" \n            type=\"text\"\n            value=\"{{dateValue}}\" \n            aria-label=\"{{placeholder}}\"\n            flex/> \n    </md-input-container> \n</div>");
+$templateCache.put("components/mdpTimePicker/pickerTemplate.html","<div class=\"mdp-date-picker-input-container\" layout layout-align=\"start start\" flex>\n    <md-button class=\"md-icon-button\" \n        ng-show=\"showIcon\" \n        aria-label=\"{{ placeholder }}\" \n        ng-click=\"showPicker($event)\">\n            <md-icon md-svg-icon=\"mdp-access-time\"></md-icon>\n    </md-button>\n    <md-input-container class=\"md-block\" flex>\n        <label>{{ placeholder }}</label>\n        <input \n            type=\"text\"\n            class=\"mdp-date-picker-input\" \n            ng-click=\"showPicker($event)\" \n            value=\"{{ timeValue }}\" \n            aria-label=\"{{ placeholder }}\" \n            flex />\n    </md-input-container>\n</div>");}]);
 module.constant("mdpIconsRegistry", [
     {
         id: 'mdp-chevron-left',
@@ -356,12 +356,13 @@ module.directive("mdpDatePicker", ["$mdpDatePicker", "$timeout", function($mdpDa
         transclude: true,
         templateUrl: 'components/mdpDatePicker/pickerTemplate.html',
         scope: {
-            "minDate": "@min",
-            "maxDate": "@max",
+            "minDate": "=min",
+            "maxDate": "=max",
+            "required": "=",
             "dateFilter": "=mdpDateFilter",
             "dateFormat": "@mdpFormat",
             "placeholder": "@mdpPlaceholder",
-            "showIcon": "@"
+            "showIcon": "="
         },
         link: function(scope, element, attrs, ngModel, $transclude) {
             var inputElement = angular.element(element[0].querySelector('input')),
@@ -373,77 +374,95 @@ module.directive("mdpDatePicker", ["$mdpDatePicker", "$timeout", function($mdpDa
             });
             
             var messages = angular.element(inputContainer[0].querySelector("[ng-messages]"));
-            
             scope.type = scope.dateFormat ? "text" : "date"
-            scope.dateFormat = scope.dateFormat || "YYYY-MM-DD";
+            scope.dateFormat = scope.dateFormat || "DD/MM/YYYY";
             scope.placeholder = scope.placeholder || scope.dateFormat;
-            scope.showIcon = scope.showIcon === 'true';
             scope.autoSwitch = scope.autoSwitch || false;
-            
-            scope.getValue = function() {
-                if(angular.isDate(ngModel.$modelValue)) {
-                    var strVal = moment(ngModel.$modelValue).format(scope.dateFormat);
-                    inputContainerCtrl.setHasValue(!ngModel.$isEmpty(ngModel.$modelValue));
-                    
-                    return strVal;
-                 } else return "";
-            };
+            scope.dateValue = '';
+            scope.showIcon = scope.showIcon && scope.showIcon === 'true';
+            scope.showing = false;
             
             scope.$watch(function() { return ngModel.$error }, function(newValue, oldValue) {
                 inputContainerCtrl.setInvalid(!ngModel.$pristine && !!Object.keys(ngModel.$error).length);
             }, true);
             
+            inputElement.on("input blur", function(event) {
+                if (!scope.showing) {
+                    ngModel.$setViewValue(event.target.value);
+                }
+            });
+            
+            scope.showPicker = function(ev) {
+                scope.showing = true;
+                $mdpDatePicker(ngModel.$modelValue, {
+            	    minDate: scope.minDate ? moment(scope.minDate).startOf('day').toDate() : scope.minDate, 
+            	    maxDate: scope.maxDate ? moment(scope.maxDate).startOf('day').toDate() : scope.maxDate,
+            	    dateFilter: scope.dateFilter,
+            	    targetEvent: ev
+        	    })
+                .then(updateDate)
+                .finally(allowUpdates); 
+            };
+            
+            scope.$on("$destroy", function() {
+            });
+            
             ngModel.$validators.format = function(modelValue, viewValue) {
                 return !viewValue || angular.isDate(viewValue) || moment(viewValue, scope.dateFormat, true).isValid();
             };
             
-            ngModel.$parsers.unshift(function(value) {
-                var parsed = moment(value, scope.dateFormat, true);
-                if(parsed.isValid()) {
-                    if(angular.isDate(ngModel.$modelValue)) {
-                        var originalModel = moment(ngModel.$modelValue);
-                        originalModel.year(parsed.year());
-                        originalModel.month(parsed.month());
-                        originalModel.date(parsed.date());
-                        
-                        parsed = originalModel;
-                    }
-                    return parsed.toDate(); 
-                } else
-                    return angular.isDate(ngModel.$modelValue) ? ngModel.$modelValue : null;
-            });
-            
-            function updateDate(date) {
-                var value = moment(date, angular.isDate(date) ? null : scope.dateFormat, true),
-                    strValue = value.format(scope.dateFormat);
-
-                if(value.isValid()) {
-                    inputElement[0].size = strValue.length;
-                    ngModel.$setViewValue(strValue);
-                } else {
-                    if(ngModel.$pristine && ngModel.$invalid) inputContainerCtrl.setInvalid(true);
-                    ngModel.$setViewValue(date);
-                }
-                if(!ngModel.$pristine && messages.hasClass("md-auto-hide") && inputContainer.hasClass("md-input-invalid")) messages.removeClass("md-auto-hide");
-                    
-            	ngModel.$render();
-            }
-                
-            scope.showPicker = function(ev) {
-                $mdpDatePicker(ngModel.$modelValue, {
-            	    minDate: scope.minDate, 
-            	    maxDate: scope.maxDate,
-            	    dateFilter: scope.dateFilter,
-            	    targetEvent: ev
-        	    }).then(updateDate);
+            ngModel.$validators.required = function(modelValue, viewValue) {
+                return !scope.required || !!viewValue;
             };
             
-            inputElement.on("input blur", function(event) {
-                updateDate(event.target.value);
+            ngModel.$validators.min = function(modelValue, viewValue) {
+                var viewDate = moment(viewValue, scope.dateFormat);
+                var minDate = moment(scope.minDate).subtract(1, 'day').endOf('day');
+                return !viewValue || !scope.minDate || viewDate.isAfter(minDate);
+            };
+            
+            ngModel.$validators.max = function(modelValue, viewValue) {
+                var viewDate = moment(viewValue, scope.dateFormat);
+                var maxDate = moment(scope.maxDate).add(1, 'day').startOf('day');;
+                return !viewValue || !scope.maxDate || viewDate.isBefore(maxDate);
+            };
+            
+            ngModel.$parsers.unshift(function(viewValue) {
+                return parseDate(viewValue);
             });
             
-            scope.$on("$destroy", function() {
-            })
+            ngModel.$formatters.unshift(function(modelValue) {
+                return moment(modelValue).format(scope.dateFormat)
+            });
+            
+            ngModel.$render = function() {
+                scope.dateValue = ngModel.$viewValue;
+            };
+            
+            function allowUpdates() {
+                scope.showing = false;   
+            }
+            
+            function parseDate(viewValue) {
+                var parsed = moment(viewValue, scope.dateFormat, true);
+                if(parsed.isValid()) {
+                    return parsed.toDate(); 
+                } else {
+                    return ngModel.$modelValue;
+                }
+            }
+            
+            function updateDate(date) {
+                if (date && angular.isDate(date) && !moment(date).isSame(ngModel.$modelValue)) {
+                    ngModel.$setViewValue(moment(date).format(scope.dateFormat));
+                    ngModel.$render();
+                }
+                inputContainerCtrl.setHasValue(!ngModel.$isEmpty());
+                
+                if(!ngModel.$pristine && messages.hasClass("md-auto-hide") && inputContainer.hasClass("md-input-invalid")){
+                     messages.removeClass("md-auto-hide");
+                }
+            }
         }
     };
 }]);
@@ -456,7 +475,6 @@ function TimePickerCtrl($scope, $mdDialog, time, autoSwitch, $mdMedia) {
     this.currentView = this.VIEW_HOURS;
     this.time = moment(time);
     this.autoSwitch = !!autoSwitch;
-    console.log(autoSwitch);
     
     this.clockHours = parseInt(this.time.format("h"));
     this.clockMinutes = parseInt(this.time.minutes());
@@ -697,10 +715,13 @@ module.directive("mdpTimePicker", ["$mdpTimePicker", "$timeout", function($mdpTi
         transclude: true,
         templateUrl: 'components/mdpTimePicker/pickerTemplate.html',
         scope: {
+            "minTime": "=min",
+            "maxTime": "=max",
             "timeFormat": "@mdpFormat",
             "placeholder": "@mdpPlaceholder",
             "autoSwitch": "=?mdpAutoSwitch",
-            "showIcon": "@"
+            "showIcon": "=",
+            "required": '='
         },
         link: function(scope, element, attrs, ngModel, $transclude) {
             var inputElement = angular.element(element[0].querySelector('input')),
@@ -712,80 +733,88 @@ module.directive("mdpTimePicker", ["$mdpTimePicker", "$timeout", function($mdpTi
             });
             
             var messages = angular.element(inputContainer[0].querySelector("[ng-messages]"));
-            
+            scope.showIcon = scope.showIcon && scope.showIcon === 'true';
             scope.type = scope.timeFormat ? "text" : "time"
-            scope.timeFormat = scope.timeFormat || "HH:mm";
+            scope.timeFormat = scope.timeFormat || "hh:mm A";
             scope.placeholder = scope.placeholder || scope.timeFormat;
-            scope.showIcon = scope.showIcon === 'true';
             scope.autoSwitch = scope.autoSwitch || false;
-            
-            scope.$watch(function() { return ngModel.$error }, function(newValue, oldValue) {
-                inputContainerCtrl.setInvalid(!ngModel.$pristine && !!Object.keys(ngModel.$error).length);
-            }, true);
-            
-            scope.getValue = function() {
-                if(angular.isDate(ngModel.$modelValue)) {
-                    var strVal = moment(ngModel.$modelValue).format(scope.timeFormat);
-                    inputContainerCtrl.setHasValue(!ngModel.$isEmpty(ngModel.$modelValue));
-                    
-                    return strVal;
-                 } else return "";
-            };
+            scope.showing = false;
             
             ngModel.$validators.format = function(modelValue, viewValue) {
                 return !viewValue || angular.isDate(viewValue) || moment(viewValue, scope.timeFormat, true).isValid();
             };
             
-            ngModel.$parsers.unshift(function(value) {
-                var parsed = moment(value, scope.timeFormat, true);
-                if(parsed.isValid()) {
-                    if(angular.isDate(ngModel.$modelValue)) {
-                        var originalModel = moment(ngModel.$modelValue);
-                        originalModel.minutes(parsed.minutes());
-                        originalModel.hours(parsed.hours());
-                        originalModel.seconds(parsed.seconds());
-                        
-                        parsed = originalModel;
-                    }
-                    return parsed.toDate(); 
-                } else
-                    return angular.isDate(ngModel.$modelValue) ? ngModel.$modelValue : null;
-            });
-            
-            function updateTime(time, updateInput) {
-                var value = moment(time, angular.isDate(time) ? null : scope.timeFormat, true),
-                    strValue = value.format(scope.timeFormat);
-
-                if(value.isValid()) {
-                    if(updateInput) inputElement.val(strValue);
-                    inputElement[0].size = strValue.length;
-                    ngModel.$setViewValue(strValue);
-                } else {
-                    if(ngModel.$pristine) inputContainerCtrl.setInvalid(true);
-                    ngModel.$setViewValue(time);
-                }
-                if(!ngModel.$pristine && messages.hasClass("md-auto-hide") && inputContainer.hasClass("md-input-invalid")) messages.removeClass("md-auto-hide");
-                
-                inputContainerCtrl.setHasValue(ngModel.$isEmpty());
-                    
-            	ngModel.$render();
-            }
-                
-            scope.showPicker = function(ev) {
-                $mdpTimePicker(ngModel.$modelValue, {
-                    targetEvent: ev,
-                    autoSwitch: scope.autoSwitch
-                }).then(function(time) {
-                    updateTime(time, true);
-                });
+            ngModel.$validators.required = function(modelValue, viewValue) {
+                return !scope.required || !!viewValue;
             };
             
+            ngModel.$validators.min = function(modelValue, viewValue) {
+                var viewTime = moment(viewValue, scope.timeFormat);
+                var minTime = moment(scope.minTime);
+                return !viewValue || !scope.minTime || viewTime.isAfter(minTime);
+            };
+            
+            ngModel.$validators.max = function(modelValue, viewValue) {
+                var viewDate = moment(viewValue, scope.timeFormat);
+                var maxTime = moment(scope.maxTime);
+                return !viewValue || !scope.maxTime || viewDate.isBefore(maxTime);
+            };
+        
             inputElement.on("input blur", function(event) {
-                updateTime(event.target.value);
+                if (!scope.showing) {
+                    ngModel.$setViewValue(event.target.value);
+                }
             });
             
+            scope.showPicker = function(ev) {
+                scope.showing = true;
+                $mdpTimePicker(ngModel.$modelValue, {
+            	    targetEvent: ev,
+                    autoSwitch: scope.autoSwitch
+        	    })
+                .then(updateTime)
+                .finally(allowUpdates); 
+            };
+            
+            ngModel.$parsers.unshift(function(viewValue) {
+                return parseTime(viewValue);
+            });
+            
+            ngModel.$formatters.unshift(function(modelValue) {
+                return moment(modelValue).format(scope.timeFormat)
+            });
+            
+            ngModel.$render = function() {
+                scope.timeValue = ngModel.$viewValue;
+            };
+            
+            function allowUpdates() {
+                scope.showing = false;   
+            }
+            
+            function parseTime(viewValue) {
+                var parsed = moment(viewValue, scope.timeFormat, true);
+                if(parsed.isValid()) {
+                    return parsed.toDate(); 
+                } else {
+                    return ngModel.$modelValue;
+                }
+            }
+            
+            function updateTime(date) {
+                if (date && angular.isDate(date) && !moment(date).isSame(ngModel.$modelValue)) {
+                    ngModel.$setViewValue(moment(date).format(scope.timeFormat));
+                    ngModel.$render();
+                }
+                inputContainerCtrl.setHasValue(!ngModel.$isEmpty());
+                
+                if(!ngModel.$pristine && messages.hasClass("md-auto-hide") && inputContainer.hasClass("md-input-invalid")){
+                     messages.removeClass("md-auto-hide");
+                }
+            }
+            
             scope.$on("$destroy", function() {
-            })
+            });
         }
     };
 }]);

@@ -27,7 +27,11 @@ gulp.task('assets', function() {
 });
 
 gulp.task('build', function() {  
-    return gulp.src(['src/mdPickers.js', 'src/md-picker-templates.js', 'src/core/**/*.js', 'src/components/**/*.js'])
+    return gulp.src(['src/mdPickers.js', 
+        'src/md-picker-templates.js', 
+        'src/core/**/*.js', 
+        'src/components/mdpDatePicker/*.js', 
+        'src/components/mdpTimePicker/*.js'])
         .pipe(concat('ol-md-pickers.js'))
         .pipe(wrap('(function() {\n"use strict";\n<%= contents %>\n})();'))
         .pipe(sourcemaps.init())

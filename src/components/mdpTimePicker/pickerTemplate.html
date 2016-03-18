@@ -1,8 +1,18 @@
-<div layout layout-align="start start" flex>
-    <md-button class="md-icon-button" ng-show="showIcon" aria-label="{{ placeholder }}" ng-click="showPicker($event)">
-        <md-icon md-svg-icon="mdp-access-time"></md-icon>
+<div class="mdp-date-picker-input-container" layout layout-align="start start" flex>
+    <md-button class="md-icon-button" 
+        ng-show="showIcon" 
+        aria-label="{{ placeholder }}" 
+        ng-click="showPicker($event)">
+            <md-icon md-svg-icon="mdp-access-time"></md-icon>
     </md-button>
     <md-input-container class="md-block" flex>
-        <input type="{{ type }}" ng-click="showPicker($event)" placeholder="{{ placeholder }}" value="{{ getValue() }}" aria-label="{{ placeholder }}" flex/>
+        <label>{{ placeholder }}</label>
+        <input 
+            type="text"
+            class="mdp-date-picker-input" 
+            ng-click="showPicker($event)" 
+            value="{{ timeValue }}" 
+            aria-label="{{ placeholder }}" 
+            flex />
     </md-input-container>
 </div>
