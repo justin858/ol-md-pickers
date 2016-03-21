@@ -1,7 +1,8 @@
 # mdPickers
 Material Design date/time pickers built with Angular Material and Moment.js.
 This fork allows for more configuration, such as floating labels, placeholders 
-and other styling options.
+and other styling options. Also updated validation, providing min, max, format and required validators using the
+$validators pipeline.
 
 Original mdPickers can be found at: https://github.com/alenaksu/mdPickers
 
