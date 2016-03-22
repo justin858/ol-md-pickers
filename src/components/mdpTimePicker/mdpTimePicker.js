@@ -265,7 +265,7 @@ module.directive("mdpTimePicker", ["$mdpTimePicker", "$timeout", function($mdpTi
             });
             
             var messages = angular.element(inputContainer[0].querySelector("[ng-messages]"));
-            scope.showIcon = scope.showIcon && scope.showIcon === 'true';
+            scope.iconShowing = scope.showIcon && scope.showIcon === 'true';
             scope.type = scope.timeFormat ? "text" : "time"
             scope.timeFormat = scope.timeFormat || "hh:mm A";
             scope.placeholder = scope.placeholder || scope.timeFormat;
@@ -279,7 +279,7 @@ module.directive("mdpTimePicker", ["$mdpTimePicker", "$timeout", function($mdpTi
             };
             
             ngModel.$validators.required = function(modelValue, viewValue) {
-                return !scope.required || !!modelValue;
+                return !scope.required || !!viewValue;
             };
             
             ngModel.$validators.min = function(modelValue, viewValue) {
@@ -301,12 +301,15 @@ module.directive("mdpTimePicker", ["$mdpTimePicker", "$timeout", function($mdpTi
             });
             
             scope.$watch('controller.$valid', function() {
-                updateValidity();
+                updateContainerValidity();
             });
             
-            scope.$watchGroup(['minDate', 'maxDate'], function() {
-                ngModel.$validate();
-                updateValidity();
+            scope.$watchGroup(['minTime', 'maxTime'], function() {
+                 validate();
+            });
+            
+            scope.$watch(function(){ return ngModel.$modelValue; }, function() {
+                 validate();  
             });
             
             scope.showPicker = function(ev) {
@@ -332,10 +335,14 @@ module.directive("mdpTimePicker", ["$mdpTimePicker", "$timeout", function($mdpTi
                 inputContainerCtrl.setHasValue(ngModel.$isEmpty());
             };
             
-            function updateValidity() {
+            function validate() {
+                ngModel.$validate();
+                updateContainerValidity();    
+            }
+            
+            function updateContainerValidity() {
                 if (!!Object.keys(ngModel.$error).length) {
                     inputContainerCtrl.setInvalid(true);
-                    
                 } else {
                     inputContainerCtrl.setInvalid(false);
                 }
@@ -348,12 +355,19 @@ module.directive("mdpTimePicker", ["$mdpTimePicker", "$timeout", function($mdpTi
             function parseTime(viewValue) {
                 var parsed = moment(viewValue, scope.timeFormat, true);
                 if(parsed.isValid()) {
-                    return parsed.toDate(); 
+                    var model = ngModel.$modelValue || new Date();
+                    
+                    parsed.set({
+                        'year': model.getFullYear(),
+                        'month': model.getMonth(),
+                        'date': model.getDate()
+                    });
+                    return parsed.toDate();
                 } else {
-                    return ngModel.$modelValue;
+                    return '';
                 }
             }
-            
+                                
             function updateTime(date) {
                 if (date && angular.isDate(date) && !moment(date).isSame(ngModel.$modelValue)) {
                     inputElement.value = moment(date).format(scope.timeFormat)

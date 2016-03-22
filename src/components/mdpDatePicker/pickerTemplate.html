@@ -1,8 +1,8 @@
-<div class="mdp-date-picker-input-container" layout layout-align="start start" flex>
+<div class="mdp-date-picker-input-container" ng-class="{'md-has-icon': iconShowing}" layout layout-align="start start" flex>
     <md-button class="md-icon-button" 
         aria-label="{{placeholder}}" 
         ng-click="showPicker($event)" 
-        ng-show="showIcon">
+        ng-show="iconShowing">
             <md-icon md-svg-icon="mdp-event"></md-icon>
     </md-button>
     <md-input-container class="md-block" flex>
@@ -12,6 +12,6 @@
             ng-click="showPicker($event)" 
             type="text"
             aria-label="{{placeholder}}"
-            flex/> 
+            flex/>
     </md-input-container> 
 </div>

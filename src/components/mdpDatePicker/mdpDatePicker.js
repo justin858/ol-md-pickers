@@ -312,7 +312,7 @@ module.directive("mdpDatePicker", ["$mdpDatePicker", "$timeout", function($mdpDa
             scope.dateFormat = scope.dateFormat || "DD/MM/YYYY";
             scope.placeholder = scope.placeholder || scope.dateFormat;
             scope.autoSwitch = scope.autoSwitch || false;
-            scope.showIcon = scope.showIcon && scope.showIcon === 'true';
+            scope.iconShowing = scope.showIcon && scope.showIcon === 'true';
             scope.showing = false;
             scope.controller = ngModel;
             messages.removeClass("md-auto-hide");
@@ -372,6 +372,7 @@ module.directive("mdpDatePicker", ["$mdpDatePicker", "$timeout", function($mdpDa
             });
             
             ngModel.$formatters.unshift(function(modelValue) {
+                updateValidity();
                 return moment(modelValue).format(scope.dateFormat)
             });
             

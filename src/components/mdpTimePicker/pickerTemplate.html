@@ -1,6 +1,6 @@
-<div class="mdp-date-picker-input-container" layout layout-align="start start" flex>
+<div class="mdp-date-picker-input-container" ng-class="{'md-has-icon': iconShowing}" layout layout-align="start start" flex>
     <md-button class="md-icon-button" 
-        ng-show="showIcon" 
+        ng-show="iconShowing" 
         aria-label="{{ placeholder }}" 
         ng-click="showPicker($event)">
             <md-icon md-svg-icon="mdp-access-time"></md-icon>

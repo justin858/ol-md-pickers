@@ -22,8 +22,8 @@ module.run(["$templateCache", "mdpIconsRegistry", function($templateCache, mdpIc
 		$templateCache.put(icon.url, icon.svg);
 	});
 }]);
-angular.module("mdPickerTemplates").run(["$templateCache", function($templateCache) {$templateCache.put("components/mdpDatePicker/pickerTemplate.html","<div class=\"mdp-date-picker-input-container\" layout layout-align=\"start start\" flex>\n    <md-button class=\"md-icon-button\" \n        aria-label=\"{{placeholder}}\" \n        ng-click=\"showPicker($event)\" \n        ng-show=\"showIcon\">\n            <md-icon md-svg-icon=\"mdp-event\"></md-icon>\n    </md-button>\n    <md-input-container class=\"md-block\" flex>\n        <label>{{ placeholder }}</label>\n        <input\n            class=\"mdp-date-picker-input\" \n            ng-click=\"showPicker($event)\" \n            type=\"text\"\n            aria-label=\"{{placeholder}}\"\n            flex/> \n    </md-input-container> \n</div>");
-$templateCache.put("components/mdpTimePicker/pickerTemplate.html","<div class=\"mdp-date-picker-input-container\" layout layout-align=\"start start\" flex>\n    <md-button class=\"md-icon-button\" \n        ng-show=\"showIcon\" \n        aria-label=\"{{ placeholder }}\" \n        ng-click=\"showPicker($event)\">\n            <md-icon md-svg-icon=\"mdp-access-time\"></md-icon>\n    </md-button>\n    <md-input-container class=\"md-block\" flex>\n        <label>{{ placeholder }}</label>\n        <input \n            type=\"text\"\n            class=\"mdp-date-picker-input\" \n            ng-click=\"showPicker($event)\" \n            aria-label=\"{{ placeholder }}\" \n            flex />\n    </md-input-container>\n</div>");}]);
+angular.module("mdPickerTemplates").run(["$templateCache", function($templateCache) {$templateCache.put("components/mdpDatePicker/pickerTemplate.html","<div class=\"mdp-date-picker-input-container\" ng-class=\"{\'md-has-icon\': iconShowing}\" layout layout-align=\"start start\" flex>\n    <md-button class=\"md-icon-button\" \n        aria-label=\"{{placeholder}}\" \n        ng-click=\"showPicker($event)\" \n        ng-show=\"iconShowing\">\n            <md-icon md-svg-icon=\"mdp-event\"></md-icon>\n    </md-button>\n    <md-input-container class=\"md-block\" flex>\n        <label>{{ placeholder }}</label>\n        <input\n            class=\"mdp-date-picker-input\" \n            ng-click=\"showPicker($event)\" \n            type=\"text\"\n            aria-label=\"{{placeholder}}\"\n            flex/>\n    </md-input-container> \n</div>");
+$templateCache.put("components/mdpTimePicker/pickerTemplate.html","<div class=\"mdp-date-picker-input-container\" ng-class=\"{\'md-has-icon\': iconShowing}\" layout layout-align=\"start start\" flex>\n    <md-button class=\"md-icon-button\" \n        ng-show=\"iconShowing\" \n        aria-label=\"{{ placeholder }}\" \n        ng-click=\"showPicker($event)\">\n            <md-icon md-svg-icon=\"mdp-access-time\"></md-icon>\n    </md-button>\n    <md-input-container class=\"md-block\" flex>\n        <label>{{ placeholder }}</label>\n        <input \n            type=\"text\"\n            class=\"mdp-date-picker-input\" \n            ng-click=\"showPicker($event)\" \n            aria-label=\"{{ placeholder }}\" \n            flex />\n    </md-input-container>\n</div>");}]);
 module.constant("mdpIconsRegistry", [
     {
         id: 'mdp-chevron-left',
@@ -378,7 +378,7 @@ module.directive("mdpDatePicker", ["$mdpDatePicker", "$timeout", function($mdpDa
             scope.dateFormat = scope.dateFormat || "DD/MM/YYYY";
             scope.placeholder = scope.placeholder || scope.dateFormat;
             scope.autoSwitch = scope.autoSwitch || false;
-            scope.showIcon = scope.showIcon && scope.showIcon === 'true';
+            scope.iconShowing = scope.showIcon && scope.showIcon === 'true';
             scope.showing = false;
             scope.controller = ngModel;
             messages.removeClass("md-auto-hide");
@@ -438,6 +438,7 @@ module.directive("mdpDatePicker", ["$mdpDatePicker", "$timeout", function($mdpDa
             });
             
             ngModel.$formatters.unshift(function(modelValue) {
+                updateValidity();
                 return moment(modelValue).format(scope.dateFormat)
             });
             
@@ -744,7 +745,7 @@ module.directive("mdpTimePicker", ["$mdpTimePicker", "$timeout", function($mdpTi
             });
             
             var messages = angular.element(inputContainer[0].querySelector("[ng-messages]"));
-            scope.showIcon = scope.showIcon && scope.showIcon === 'true';
+            scope.iconShowing = scope.showIcon && scope.showIcon === 'true';
             scope.type = scope.timeFormat ? "text" : "time"
             scope.timeFormat = scope.timeFormat || "hh:mm A";
             scope.placeholder = scope.placeholder || scope.timeFormat;
@@ -758,7 +759,7 @@ module.directive("mdpTimePicker", ["$mdpTimePicker", "$timeout", function($mdpTi
             };
             
             ngModel.$validators.required = function(modelValue, viewValue) {
-                return !scope.required || !!modelValue;
+                return !scope.required || !!viewValue;
             };
             
             ngModel.$validators.min = function(modelValue, viewValue) {
@@ -780,12 +781,15 @@ module.directive("mdpTimePicker", ["$mdpTimePicker", "$timeout", function($mdpTi
             });
             
             scope.$watch('controller.$valid', function() {
-                updateValidity();
+                updateContainerValidity();
             });
             
-            scope.$watchGroup(['minDate', 'maxDate'], function() {
-                ngModel.$validate();
-                updateValidity();
+            scope.$watchGroup(['minTime', 'maxTime'], function() {
+                 validate();
+            });
+            
+            scope.$watch(function(){ return ngModel.$modelValue; }, function() {
+                 validate();  
             });
             
             scope.showPicker = function(ev) {
@@ -811,10 +815,14 @@ module.directive("mdpTimePicker", ["$mdpTimePicker", "$timeout", function($mdpTi
                 inputContainerCtrl.setHasValue(ngModel.$isEmpty());
             };
             
-            function updateValidity() {
+            function validate() {
+                ngModel.$validate();
+                updateContainerValidity();    
+            }
+            
+            function updateContainerValidity() {
                 if (!!Object.keys(ngModel.$error).length) {
                     inputContainerCtrl.setInvalid(true);
-                    
                 } else {
                     inputContainerCtrl.setInvalid(false);
                 }
@@ -827,12 +835,19 @@ module.directive("mdpTimePicker", ["$mdpTimePicker", "$timeout", function($mdpTi
             function parseTime(viewValue) {
                 var parsed = moment(viewValue, scope.timeFormat, true);
                 if(parsed.isValid()) {
-                    return parsed.toDate(); 
+                    var model = ngModel.$modelValue || new Date();
+                    
+                    parsed.set({
+                        'year': model.getFullYear(),
+                        'month': model.getMonth(),
+                        'date': model.getDate()
+                    });
+                    return parsed.toDate();
                 } else {
-                    return ngModel.$modelValue;
+                    return '';
                 }
             }
-            
+                                
             function updateTime(date) {
                 if (date && angular.isDate(date) && !moment(date).isSame(ngModel.$modelValue)) {
                     inputElement.value = moment(date).format(scope.timeFormat)
