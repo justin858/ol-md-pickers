@@ -462,6 +462,11 @@ module.directive("mdpDatePicker", ["$mdpDatePicker", "$timeout", function($mdpDa
             function parseDate(viewValue) {
                 var parsed = moment(viewValue, scope.dateFormat, true);
                 if(parsed.isValid()) {
+                    var model = ngModel.$modelValue;
+                    parsed.set({
+                        'hour': model.getHours(),
+                        'minute': model.getMinutes()
+                    });
                     return parsed.toDate();
                 } else {
                     return '';
