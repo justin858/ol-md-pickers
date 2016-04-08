@@ -308,7 +308,7 @@ module.directive("mdpDatePicker", ["$mdpDatePicker", "$timeout", function($mdpDa
             });
             
             var messages = angular.element(inputContainer[0].querySelector("[ng-messages]"));
-            scope.type = scope.dateFormat ? "text" : "date"
+            scope.type = scope.dateFormat ? "text" : "date";
             scope.dateFormat = scope.dateFormat || "DD/MM/YYYY";
             scope.placeholder = scope.placeholder || scope.dateFormat;
             scope.autoSwitch = scope.autoSwitch || false;
@@ -397,10 +397,12 @@ module.directive("mdpDatePicker", ["$mdpDatePicker", "$timeout", function($mdpDa
                 var parsed = moment(viewValue, scope.dateFormat, true);
                 if(parsed.isValid()) {
                     var model = ngModel.$modelValue;
-                    parsed.set({
-                        'hour': model.getHours(),
-                        'minute': model.getMinutes()
-                    });
+                    if (model) {
+                        parsed.set({
+                            'hour': model.getHours(),
+                            'minute': model.getMinutes()
+                        });
+                    }
                     return parsed.toDate();
                 } else {
                     return '';
