@@ -363,7 +363,7 @@ module.directive("mdpDatePicker", ["$mdpDatePicker", "$timeout", function($mdpDa
             
             ngModel.$validators.max = function(modelValue, viewValue) {
                 var modelDate = moment(modelValue);
-                var maxDate = moment(scope.maxDate).add(1, 'day').startOf('day');;
+                var maxDate = moment(scope.maxDate).add(1, 'day').startOf('day');
                 return !modelValue || !scope.maxDate || modelDate.isBefore(maxDate);
             };
             
@@ -373,7 +373,7 @@ module.directive("mdpDatePicker", ["$mdpDatePicker", "$timeout", function($mdpDa
             
             ngModel.$formatters.unshift(function(modelValue) {
                 updateValidity();
-                return moment(modelValue).format(scope.dateFormat)
+                return moment(modelValue).format(scope.dateFormat);
             });
             
             ngModel.$render = function() {

@@ -429,7 +429,7 @@ module.directive("mdpDatePicker", ["$mdpDatePicker", "$timeout", function($mdpDa
             
             ngModel.$validators.max = function(modelValue, viewValue) {
                 var modelDate = moment(modelValue);
-                var maxDate = moment(scope.maxDate).add(1, 'day').startOf('day');;
+                var maxDate = moment(scope.maxDate).add(1, 'day').startOf('day');
                 return !modelValue || !scope.maxDate || modelDate.isBefore(maxDate);
             };
             
@@ -439,7 +439,7 @@ module.directive("mdpDatePicker", ["$mdpDatePicker", "$timeout", function($mdpDa
             
             ngModel.$formatters.unshift(function(modelValue) {
                 updateValidity();
-                return moment(modelValue).format(scope.dateFormat)
+                return moment(modelValue).format(scope.dateFormat);
             });
             
             ngModel.$render = function() {
@@ -842,13 +842,14 @@ module.directive("mdpTimePicker", ["$mdpTimePicker", "$timeout", function($mdpTi
             function parseTime(viewValue) {
                 var parsed = moment(viewValue, scope.timeFormat, true);
                 if(parsed.isValid()) {
-                    var model = ngModel.$modelValue || new Date();
-                    
-                    parsed.set({
-                        'year': model.getFullYear(),
-                        'month': model.getMonth(),
-                        'date': model.getDate()
-                    });
+                    var model = ngModel.$modelValue;
+                    if (model) {
+                        parsed.set({
+                            'year': model.getFullYear(),
+                            'month': model.getMonth(),
+                            'date': model.getDate()
+                        });
+                    }
                     return parsed.toDate();
                 } else {
                     return '';
@@ -857,7 +858,7 @@ module.directive("mdpTimePicker", ["$mdpTimePicker", "$timeout", function($mdpTi
                                 
             function updateTime(date) {
                 if (date && angular.isDate(date) && !moment(date).isSame(ngModel.$modelValue)) {
-                    inputElement.value = moment(date).format(scope.timeFormat)
+                    inputElement.value = moment(date).format(scope.timeFormat);
                     ngModel.$setViewValue(moment(date).format(scope.timeFormat));
                     ngModel.$render();
                 }
