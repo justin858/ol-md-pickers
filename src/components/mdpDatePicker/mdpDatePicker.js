@@ -90,7 +90,7 @@ function DatePickerCtrl($scope, $mdDialog, $mdMedia, $timeout, currentDate, opti
         self.animating = true;
         $timeout(angular.noop).then(function() {
             self.animating = false;
-        })  
+        });
     };
 }
 
@@ -220,10 +220,10 @@ function CalendarCtrl($scope) {
         self.daysInMonth = self.getDaysInMonth();
     };
     
-    $scope.$watch(function() { return  self.date.unix() }, function(newValue, oldValue) {
+    $scope.$watch(function() { return  self.date.unix(); }, function(newValue, oldValue) {
         if(newValue && newValue !== oldValue)
             self.updateDaysInMonth();
-    })
+    });
     
     self.updateDaysInMonth();
 }
@@ -334,8 +334,9 @@ module.directive("mdpDatePicker", ["$mdpDatePicker", "$timeout", function($mdpDa
             
             scope.showPicker = function(ev) {
                 scope.showing = true;
-                $mdpDatePicker(ngModel.$modelValue, {
-            	    minDate: scope.minDate ? moment(scope.minDate).startOf('day').toDate() : scope.minDate, 
+                var minDate = moment(scope.minDate).startOf('day').toDate();
+                $mdpDatePicker(ngModel.$modelValue || minDate, {
+            	    minDate: scope.minDate ? minDate : scope.minDate, 
             	    maxDate: scope.maxDate ? moment(scope.maxDate).startOf('day').toDate() : scope.maxDate,
             	    dateFilter: scope.dateFilter,
             	    targetEvent: ev
@@ -356,15 +357,15 @@ module.directive("mdpDatePicker", ["$mdpDatePicker", "$timeout", function($mdpDa
             };
             
             ngModel.$validators.min = function(modelValue, viewValue) {
-                var modelDate = moment(modelValue);
+                var viewDate = moment(viewValue, scope.dateFormat);
                 var minDate = moment(scope.minDate).subtract(1, 'day').endOf('day');
-                return !modelValue || !scope.minDate || modelDate.isAfter(minDate);
+                return !viewValue || !scope.minDate || viewDate.isAfter(minDate);
             };
             
             ngModel.$validators.max = function(modelValue, viewValue) {
-                var modelDate = moment(modelValue);
+                var viewDate = moment(viewValue, scope.dateFormat);
                 var maxDate = moment(scope.maxDate).add(1, 'day').startOf('day');
-                return !modelValue || !scope.maxDate || modelDate.isBefore(maxDate);
+                return !viewValue || !scope.maxDate || viewDate.isBefore(maxDate);
             };
             
             ngModel.$parsers.unshift(function(viewValue) {
@@ -377,8 +378,10 @@ module.directive("mdpDatePicker", ["$mdpDatePicker", "$timeout", function($mdpDa
             });
             
             ngModel.$render = function() {
-                inputElement.val(ngModel.$viewValue);
-                inputContainerCtrl.setHasValue(ngModel.$isEmpty());
+                if (ngModel.$viewValue) {
+                    inputElement.val(ngModel.$viewValue);
+                	inputContainerCtrl.setHasValue(ngModel.$isEmpty());
+            	}
             };
             
             function allowUpdates() {
@@ -405,7 +408,7 @@ module.directive("mdpDatePicker", ["$mdpDatePicker", "$timeout", function($mdpDa
                     }
                     return parsed.toDate();
                 } else {
-                    return '';
+                    return ngModel.$modelValue;
                 }
             }
             

@@ -51,7 +51,7 @@ function ClockCtrl($scope) {
         "minutes": {
             range: 60,
         }
-    }
+    };
     
     this.getPointerStyle = function() {
         var divider = 1;
@@ -68,7 +68,7 @@ function ClockCtrl($scope) {
             "-webkit-transform": "rotate(" + degrees + "deg)",
             "-ms-transform": "rotate(" + degrees + "deg)",
             "transform": "rotate(" + degrees + "deg)"
-        }
+        };
     };
     
     this.setTimeByDeg = function(deg) {
@@ -177,7 +177,7 @@ module.directive("mdpClock", ["$animate", "$timeout", function($animate, $timeou
                 element.off("mousemove", onEvent); 
             });
         }
-    }
+    };
 }]);
 
 module.provider("$mdpTimePicker", function() {
@@ -266,7 +266,7 @@ module.directive("mdpTimePicker", ["$mdpTimePicker", "$timeout", function($mdpTi
             
             var messages = angular.element(inputContainer[0].querySelector("[ng-messages]"));
             scope.iconShowing = scope.showIcon && scope.showIcon === 'true';
-            scope.type = scope.timeFormat ? "text" : "time"
+            scope.type = scope.timeFormat ? "text" : "time";
             scope.timeFormat = scope.timeFormat || "hh:mm A";
             scope.placeholder = scope.placeholder || scope.timeFormat;
             scope.autoSwitch = scope.autoSwitch || false;
@@ -289,9 +289,9 @@ module.directive("mdpTimePicker", ["$mdpTimePicker", "$timeout", function($mdpTi
             };
             
             ngModel.$validators.max = function(modelValue, viewValue) {
-                var modelDate = moment(modelValue);
+                var modelTime = moment(modelValue);
                 var maxTime = moment(scope.maxTime);
-                return !modelValue || !scope.maxTime || modelDate.isBefore(maxTime);
+                return !modelValue || !scope.maxTime || modelTime.isBefore(maxTime);
             };
         
             inputElement.on("input blur", function(event) {
@@ -311,10 +311,10 @@ module.directive("mdpTimePicker", ["$mdpTimePicker", "$timeout", function($mdpTi
             scope.$watch(function(){ return ngModel.$modelValue; }, function() {
                  validate();  
             });
-            
+             
             scope.showPicker = function(ev) {
                 scope.showing = true;
-                $mdpTimePicker(ngModel.$modelValue, {
+                $mdpTimePicker(ngModel.$modelValue || scope.minTime, {
             	    targetEvent: ev,
                     autoSwitch: scope.autoSwitch
         	    })
@@ -327,12 +327,14 @@ module.directive("mdpTimePicker", ["$mdpTimePicker", "$timeout", function($mdpTi
             });
             
             ngModel.$formatters.unshift(function(modelValue) {
-                return moment(modelValue).format(scope.timeFormat)
+                return moment(modelValue).format(scope.timeFormat);
             });
             
             ngModel.$render = function() {
-                inputElement.val(ngModel.$viewValue);
-                inputContainerCtrl.setHasValue(ngModel.$isEmpty());
+                if (ngModel.$viewValue) {
+                	inputElement.val(ngModel.$viewValue);
+                	inputContainerCtrl.setHasValue(ngModel.$isEmpty());
+            	}
             };
             
             function validate() {
